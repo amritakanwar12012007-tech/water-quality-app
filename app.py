@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
+import matplotlib.pyplot as plt
 
 # Dataset
 data = {
@@ -13,26 +14,32 @@ data = {
 
 df = pd.DataFrame(data)
 
+# Model
 X = df[['pH','TDS','DO','BOD']]
 y = df['WQI']
 
 model = RandomForestRegressor()
 model.fit(X,y)
 
+# Title
 st.title("💧 Water Quality Prediction System")
 st.write("Enter water parameters to predict Water Quality Index")
 
-pH = st.number_input("Enter pH")
-TDS = st.number_input("Enter TDS")
-DO = st.number_input("Enter DO")
-BOD = st.number_input("Enter BOD")
+# Inputs
+pH = st.number_input("Enter pH", 0.0, 14.0)
+TDS = st.number_input("Enter TDS", 0, 1000)
+DO = st.number_input("Enter DO", 0.0, 14.0)
+BOD = st.number_input("Enter BOD", 0.0, 10.0)
 
+# Prediction
 if st.button("Predict"):
     new_data = pd.DataFrame([[pH,TDS,DO,BOD]], columns=['pH','TDS','DO','BOD'])
     prediction = model.predict(new_data)[0]
 
-    st.write("Predicted WQI:", prediction)
+    st.subheader("Prediction Result")
+    st.write("Predicted WQI:", round(prediction,2))
 
+    # Category
     if prediction <= 25:
         st.success("Excellent Water Quality")
     elif prediction <= 50:
@@ -41,3 +48,29 @@ if st.button("Predict"):
         st.warning("Poor Water Quality")
     else:
         st.error("Very Poor Water Quality")
+
+    # Recommendation
+    if prediction > 50:
+        st.warning("Suggestion: Treat water before use")
+    else:
+        st.success("Water is safe for use")
+
+# Graph
+st.subheader("TDS vs WQI Graph")
+fig, ax = plt.subplots()
+ax.scatter(df['TDS'], df['WQI'])
+ax.set_xlabel("TDS")
+ax.set_ylabel("WQI")
+st.pyplot(fig)
+
+# Feature Importance
+importance = model.feature_importances_
+features = ['pH','TDS','DO','BOD']
+
+imp_df = pd.DataFrame({'Feature':features,'Importance':importance})
+
+st.subheader("Feature Importance")
+st.bar_chart(imp_df.set_index('Feature'))
+
+# Footer
+st.write("Developed for Water Quality Analysis Project")
