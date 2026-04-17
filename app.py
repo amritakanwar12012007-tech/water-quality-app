@@ -23,6 +23,7 @@ model.fit(X,y)
 
 # Title
 st.title("💧 Water Quality Prediction System")
+st.caption("AI-based Water Quality Monitoring System")
 st.write("Enter water parameters to predict Water Quality Index")
 
 # Inputs
