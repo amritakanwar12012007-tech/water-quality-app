@@ -75,3 +75,15 @@ st.bar_chart(imp_df.set_index('Feature'))
 
 # Footer
 st.write("Developed for Water Quality Analysis Project")
+st.markdown("""
+<style>
+.stApp {
+    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    color: white;
+}
+h1, h2, h3 {
+    color: #E0F7FA;
+}
+</style>
+""", unsafe_allow_html=True)
+st.image("https://images.unsplash.com/photo-1507525428034-b723cf961d3e", use_container_width=True)
