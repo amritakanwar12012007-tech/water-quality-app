@@ -2,9 +2,46 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from fpdf import FPDF
-
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
+
+# ---------------- CUSTOM STYLE ----------------
+st.markdown("""
+<style>
+html, body, [class*="css"]  {
+    font-family: Georgia, serif;
+}
+
+.stApp {
+    background-color: #f5f7fa;
+    color: #333333;
+}
+
+/* Buttons */
+.stButton>button {
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: bold;
+    border: none;
+}
+
+/* Predict button */
+div.stButton:nth-child(6) button {
+    background-color: #28a745;
+    color: white;
+}
+
+/* Sample button */
+div.stButton:nth-child(5) button {
+    background-color: #007bff;
+    color: white;
+}
+
+h1, h2, h3 {
+    color: #2c3e50;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------- HEADER ----------------
 col1, col2 = st.columns([1, 5])
@@ -17,9 +54,6 @@ with col2:
     st.markdown("### Clean Water • Smart Decisions")
 
 st.write("---")
-
-# ---------------- TABS ----------------
-tab1, tab2 = st.tabs(["🔮 Prediction", "📊 Insights"])
 
 # ---------------- DATA ----------------
 data = {
@@ -40,6 +74,9 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 rf = RandomForestRegressor()
 rf.fit(X_train, y_train)
+
+# ---------------- TABS ----------------
+tab1, tab2 = st.tabs(["🔮 Prediction", "📊 Insights"])
 
 # ---------------- TAB 1 ----------------
 with tab1:
@@ -99,7 +136,6 @@ with tab2:
 
     st.subheader("Water Quality Distribution")
 
-    # Create categories
     categories = pd.cut(df['WQI'],
                         bins=[0,50,75,100],
                         labels=["Good","Moderate","Poor"])
@@ -115,15 +151,3 @@ with tab2:
 # ---------------- FOOTER ----------------
 st.write("---")
 st.write("Developed for Water Quality Analysis Project")
-
-st.markdown("""
-<style>
-.stApp {
-    background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-    color: white;
-}
-h1, h2, h3 {
-    color: #E0F7FA;
-}
-</style>
-""", unsafe_allow_html=True)
