@@ -1,10 +1,12 @@
-import streamlit as st   
+import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
 
 # Dataset
 data = {
@@ -17,12 +19,12 @@ data = {
 
 df = pd.DataFrame(data)
 
-# Model
+# Model data
 X = df[['pH','TDS','DO','BOD']]
 y = df['WQI']
 
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+# Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Models
 rf = RandomForestRegressor()
@@ -43,94 +45,65 @@ dt_score = r2_score(y_test, dt.predict(X_test))
 st.title("💧 Water Quality Prediction System")
 st.caption("AI-based Water Quality Monitoring System")
 st.write("Enter water parameters to predict Water Quality Index")
+
+# Tabs
 tab1, tab2, tab3 = st.tabs(["🔮 Prediction", "📊 Graphs", "📈 Model Info"])
-st.subheader("📊 Model Comparison (R² Score)")
 
-score_df = pd.DataFrame({
-"Model": ["Random Forest", "Linear Regression", "Decision Tree"],
-"R² Score": [rf_score, lr_score, dt_score]
-})
-
-st.bar_chart(score_df.set_index("Model"))
-
-# Inputs
+# ---------------- TAB 1 ----------------
 with tab1:
-pH = st.number_input("Enter pH", 0.0, 14.0)
-TDS = st.number_input("Enter TDS", 0, 1000)
-DO = st.number_input("Enter DO", 0.0, 14.0)
-BOD = st.number_input("Enter BOD", 0.0, 10.0)
+    pH = st.number_input("Enter pH", 0.0, 14.0)
+    TDS = st.number_input("Enter TDS", 0, 1000)
+    DO = st.number_input("Enter DO", 0.0, 14.0)
+    BOD = st.number_input("Enter BOD", 0.0, 10.0)
 
-if st.button("Predict"):
-    new_data = pd.DataFrame([[pH,TDS,DO,BOD]], columns=['pH','TDS','DO','BOD'])
-    prediction = rf.predict(new_data)[0]
+    if st.button("Predict"):
+        new_data = pd.DataFrame([[pH, TDS, DO, BOD]], columns=['pH','TDS','DO','BOD'])
+        prediction = rf.predict(new_data)[0]
 
-    st.subheader("Prediction Result")
-    st.write("Predicted WQI:", round(prediction,2))
+        st.subheader("Prediction Result")
+        st.write("Predicted WQI:", round(prediction,2))
 
-    if prediction < 50:
-        st.success("🟢 Good Water Quality - Safe for Drinking")
-    elif prediction < 75:
-        st.warning("🟡 Moderate - Needs Treatment")
-    else:
-        st.error("🔴 Poor - Not Safe for Drinking")
-    new_data = pd.DataFrame([[pH,TDS,DO,BOD]], columns=['pH','TDS','DO','BOD'])
-    prediction = model.predict(new_data)[0]
+        if prediction < 50:
+            st.success("🟢 Good Water Quality - Safe for Drinking")
+        elif prediction < 75:
+            st.warning("🟡 Moderate - Needs Treatment")
+        else:
+            st.error("🔴 Poor - Not Safe for Drinking")
 
-    st.subheader("Prediction Result")
-    st.write("Predicted WQI:", round(prediction,2))
+        st.info(f"Prediction Confidence: {round(rf_score*100,2)}%")
 
-    # Category
-    if prediction <= 25:
-        st.success("Excellent Water Quality")
-    elif prediction <= 50:
-        st.success("Good Water Quality")
-    elif prediction <= 75:
-        st.warning("Poor Water Quality")
-    else:
-        st.error("Very Poor Water Quality")
-
-    # Recommendation
-    if prediction > 50:
-        st.warning("Suggestion: Treat water before use")
-    else:
-        st.success("Water is safe for use")
-
-# Graph
+# ---------------- TAB 2 ----------------
 with tab2:
-st.subheader("TDS vs WQI Graph")
+    st.subheader("TDS vs WQI Graph")
 
-fig, ax = plt.subplots()
-ax.scatter(df['TDS'], df['WQI'])
-ax.set_xlabel("TDS")
-ax.set_ylabel("WQI")
-st.pyplot(fig)
+    fig, ax = plt.subplots()
+    ax.scatter(df['TDS'], df['WQI'])
+    ax.set_xlabel("TDS")
+    ax.set_ylabel("WQI")
+    st.pyplot(fig)
 
-# Feature Importance
-importance = model.feature_importances_
-features = ['pH','TDS','DO','BOD']
-
-imp_df = pd.DataFrame({'Feature':features,'Importance':importance})
-
+# ---------------- TAB 3 ----------------
 with tab3:
-st.subheader("📊 Model Comparison")
+    st.subheader("📊 Model Comparison")
 
-score_df = pd.DataFrame({
-    "Model": ["Random Forest", "Linear Regression", "Decision Tree"],
-    "R² Score": [rf_score, lr_score, dt_score]
-})
+    score_df = pd.DataFrame({
+        "Model": ["Random Forest", "Linear Regression", "Decision Tree"],
+        "R² Score": [rf_score, lr_score, dt_score]
+    })
 
-st.bar_chart(score_df.set_index("Model"))
+    st.bar_chart(score_df.set_index("Model"))
 
-st.subheader("📌 Feature Importance")
+    st.subheader("📌 Feature Importance")
 
-importance = rf.feature_importances_
-features = ['pH','TDS','DO','BOD']
+    importance = rf.feature_importances_
+    features = ['pH','TDS','DO','BOD']
 
-imp_df = pd.DataFrame({'Feature':features,'Importance':importance})
-st.bar_chart(imp_df.set_index('Feature'))
+    imp_df = pd.DataFrame({'Feature':features,'Importance':importance})
+    st.bar_chart(imp_df.set_index('Feature'))
 
 # Footer
 st.write("Developed for Water Quality Analysis Project")
+
 st.markdown("""
 <style>
 .stApp {
@@ -142,4 +115,9 @@ h1, h2, h3 {
 }
 </style>
 """, unsafe_allow_html=True)
+
+st.image(
+    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    use_container_width=True
+)l=True)
     st.image("https://images.unsplash.com/photo-1507525428034-b723cf961d3e", use_container_width=True)
