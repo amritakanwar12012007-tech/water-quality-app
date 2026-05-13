@@ -119,5 +119,5 @@ h1, h2, h3 {
 st.image(
     "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
     use_container_width=True
-)l=True)
+)l=True
     st.image("https://images.unsplash.com/photo-1507525428034-b723cf961d3e", use_container_width=True)
