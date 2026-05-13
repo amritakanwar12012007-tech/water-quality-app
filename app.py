@@ -47,7 +47,6 @@ tab1, tab2, tab3 = st.tabs(["🔮 Prediction", "📊 Graphs", "📈 Model Info"]
 # ---------------- TAB 1 ----------------
 with tab1:
 
-    # Auto-fill button
     if st.button("Use Sample Data"):
         st.session_state.pH = 7.0
         st.session_state.TDS = 300
@@ -66,7 +65,6 @@ with tab1:
         st.subheader("Prediction Result")
         st.write("Predicted WQI:", round(prediction,2))
 
-        # Smart category
         if prediction < 50:
             st.success("🟢 Good Water Quality - Safe for Drinking")
         elif prediction < 75:
@@ -74,7 +72,6 @@ with tab1:
         else:
             st.error("🔴 Poor - Not Safe for Drinking")
 
-        # Warning system
         if BOD > 5:
             st.error("⚠️ High pollution detected (BOD too high)")
         if DO < 4:
@@ -133,8 +130,3 @@ h1, h2, h3 {
 }
 </style>
 """, unsafe_allow_html=True)
-
-st.image(
-    "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    use_container_width=True
-)
