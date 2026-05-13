@@ -9,23 +9,30 @@ from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
-# ---------------- UI ----------------
-st.title("💧 AquaAI - Water Quality Monitoring System")
+# ---------------- HEADER (LOGO + TAGLINE) ----------------
+col1, col2 = st.columns([1, 4])
+
+with col1:
+    st.image("https://cdn-icons-png.flaticon.com/512/4149/4149673.png", width=80)
+
+with col2:
+    st.title("💧 AquaAI - Water Quality Monitoring System")
+    st.markdown("### 🌊 Clean Water. Smart Decisions.")
+
 st.caption("AI-based Smart Water Quality Prediction")
 
+# ---------------- TABS ----------------
 tab1, tab2, tab3 = st.tabs(["🔮 Prediction", "📊 Graphs", "📈 Model Info"])
 
 # ---------------- TAB 1 ----------------
 with tab1:
 
-    # CSV Upload
     uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
         st.success("Dataset uploaded successfully")
     else:
-        # Default dataset
         data = {
             'pH':[7.2,6.8,8.1,7.5,6.9,7.0,8.0,6.7,7.8,7.1],
             'TDS':[300,500,200,400,350,320,210,480,260,330],
@@ -35,7 +42,6 @@ with tab1:
         }
         df = pd.DataFrame(data)
 
-    # Model training
     X = df[['pH','TDS','DO','BOD']]
     y = df['WQI']
 
@@ -53,7 +59,6 @@ with tab1:
     lr_score = r2_score(y_test, lr.predict(X_test))
     dt_score = r2_score(y_test, dt.predict(X_test))
 
-    # Auto-fill
     if st.button("Use Sample Data"):
         st.session_state.pH = 7.0
         st.session_state.TDS = 300
@@ -65,7 +70,6 @@ with tab1:
     DO = st.number_input("Enter DO", 0.0, 14.0, value=st.session_state.get("DO", 6.0))
     BOD = st.number_input("Enter BOD", 0.0, 10.0, value=st.session_state.get("BOD", 2.5))
 
-    # Prediction
     if st.button("Predict"):
         new_data = pd.DataFrame([[pH, TDS, DO, BOD]], columns=['pH','TDS','DO','BOD'])
         prediction = rf.predict(new_data)[0]
@@ -80,7 +84,6 @@ with tab1:
         else:
             st.error("🔴 Poor - Not Safe for Drinking")
 
-        # Warnings
         if BOD > 5:
             st.error("⚠️ High pollution detected")
         if DO < 4:
@@ -88,7 +91,7 @@ with tab1:
 
         st.info(f"Prediction Confidence: {round(rf_score*100,2)}%")
 
-        # Save history
+        # History
         if "history" not in st.session_state:
             st.session_state.history = []
 
@@ -100,7 +103,7 @@ with tab1:
             "WQI": round(prediction,2)
         })
 
-        # PDF Download
+        # PDF
         if st.button("Download Report"):
             pdf = FPDF()
             pdf.add_page()
@@ -120,8 +123,8 @@ with tab1:
 
 # ---------------- TAB 2 ----------------
 with tab2:
-
     st.subheader("TDS vs WQI Graph")
+
     fig, ax = plt.subplots()
     ax.scatter(df['TDS'], df['WQI'])
     ax.set_xlabel("TDS")
@@ -129,6 +132,7 @@ with tab2:
     st.pyplot(fig)
 
     st.subheader("pH vs WQI Graph")
+
     fig2, ax2 = plt.subplots()
     ax2.scatter(df['pH'], df['WQI'])
     ax2.set_xlabel("pH")
@@ -137,7 +141,6 @@ with tab2:
 
 # ---------------- TAB 3 ----------------
 with tab3:
-
     st.subheader("📊 Model Comparison")
 
     score_df = pd.DataFrame({
@@ -155,7 +158,6 @@ with tab3:
     imp_df = pd.DataFrame({'Feature':features,'Importance':importance})
     st.bar_chart(imp_df.set_index('Feature'))
 
-    # History
     if "history" in st.session_state:
         st.subheader("📜 Prediction History")
         st.write(pd.DataFrame(st.session_state.history))
