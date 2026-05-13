@@ -4,60 +4,47 @@ import matplotlib.pyplot as plt
 from fpdf import FPDF
 
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.metrics import r2_score
 from sklearn.model_selection import train_test_split
 
-# ---------------- HEADER (LOGO + TAGLINE) ----------------
-col1, col2 = st.columns([1, 4])
+# ---------------- HEADER ----------------
+col1, col2 = st.columns([1, 5])
 
 with col1:
-    st.image("https://cdn-icons-png.flaticon.com/512/4149/4149673.png", width=80)
+    st.image("https://cdn-icons-png.flaticon.com/512/728/728093.png", width=60)
 
 with col2:
-    st.title("💧 AquaAI - Water Quality Monitoring System")
-    st.markdown("### 🌊 Clean Water. Smart Decisions.")
+    st.title("AquaAI")
+    st.markdown("### Clean Water • Smart Decisions")
 
-st.caption("AI-based Smart Water Quality Prediction")
+st.write("---")
 
 # ---------------- TABS ----------------
-tab1, tab2, tab3 = st.tabs(["🔮 Prediction", "📊 Graphs", "📈 Model Info"])
+tab1, tab2 = st.tabs(["🔮 Prediction", "📊 Insights"])
+
+# ---------------- DATA ----------------
+data = {
+    'pH':[7.2,6.8,8.1,7.5,6.9,7.0,8.0,6.7,7.8,7.1],
+    'TDS':[300,500,200,400,350,320,210,480,260,330],
+    'DO':[6,5,7,6.5,5.5,6.2,7.1,5.2,6.8,6.0],
+    'BOD':[2,3,1,2.5,2.8,2.2,1.2,3.1,1.8,2.4],
+    'WQI':[45,60,30,50,55,48,28,65,35,52]
+}
+
+df = pd.DataFrame(data)
+
+# ---------------- MODEL ----------------
+X = df[['pH','TDS','DO','BOD']]
+y = df['WQI']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+rf = RandomForestRegressor()
+rf.fit(X_train, y_train)
 
 # ---------------- TAB 1 ----------------
 with tab1:
 
-    uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
-
-    if uploaded_file:
-        df = pd.read_csv(uploaded_file)
-        st.success("Dataset uploaded successfully")
-    else:
-        data = {
-            'pH':[7.2,6.8,8.1,7.5,6.9,7.0,8.0,6.7,7.8,7.1],
-            'TDS':[300,500,200,400,350,320,210,480,260,330],
-            'DO':[6,5,7,6.5,5.5,6.2,7.1,5.2,6.8,6.0],
-            'BOD':[2,3,1,2.5,2.8,2.2,1.2,3.1,1.8,2.4],
-            'WQI':[45,60,30,50,55,48,28,65,35,52]
-        }
-        df = pd.DataFrame(data)
-
-    X = df[['pH','TDS','DO','BOD']]
-    y = df['WQI']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-
-    rf = RandomForestRegressor()
-    lr = LinearRegression()
-    dt = DecisionTreeRegressor()
-
-    rf.fit(X_train, y_train)
-    lr.fit(X_train, y_train)
-    dt.fit(X_train, y_train)
-
-    rf_score = r2_score(y_test, rf.predict(X_test))
-    lr_score = r2_score(y_test, lr.predict(X_test))
-    dt_score = r2_score(y_test, dt.predict(X_test))
+    st.subheader("Enter Water Parameters")
 
     if st.button("Use Sample Data"):
         st.session_state.pH = 7.0
@@ -65,45 +52,31 @@ with tab1:
         st.session_state.DO = 6.0
         st.session_state.BOD = 2.5
 
-    pH = st.number_input("Enter pH", 0.0, 14.0, value=st.session_state.get("pH", 7.0))
-    TDS = st.number_input("Enter TDS", 0, 1000, value=st.session_state.get("TDS", 300))
-    DO = st.number_input("Enter DO", 0.0, 14.0, value=st.session_state.get("DO", 6.0))
-    BOD = st.number_input("Enter BOD", 0.0, 10.0, value=st.session_state.get("BOD", 2.5))
+    pH = st.number_input("pH", 0.0, 14.0, value=st.session_state.get("pH", 7.0))
+    TDS = st.number_input("TDS", 0, 1000, value=st.session_state.get("TDS", 300))
+    DO = st.number_input("DO", 0.0, 14.0, value=st.session_state.get("DO", 6.0))
+    BOD = st.number_input("BOD", 0.0, 10.0, value=st.session_state.get("BOD", 2.5))
 
     if st.button("Predict"):
         new_data = pd.DataFrame([[pH, TDS, DO, BOD]], columns=['pH','TDS','DO','BOD'])
         prediction = rf.predict(new_data)[0]
 
-        st.subheader("Prediction Result")
-        st.write("Predicted WQI:", round(prediction,2))
+        st.subheader("Result")
+        st.write(f"WQI: {round(prediction,2)}")
 
         if prediction < 50:
-            st.success("🟢 Good Water Quality - Safe for Drinking")
+            st.success("🟢 Good Water Quality")
         elif prediction < 75:
-            st.warning("🟡 Moderate - Needs Treatment")
+            st.warning("🟡 Moderate Quality")
         else:
-            st.error("🔴 Poor - Not Safe for Drinking")
+            st.error("🔴 Poor Quality")
 
         if BOD > 5:
             st.error("⚠️ High pollution detected")
         if DO < 4:
             st.warning("⚠️ Low oxygen level")
 
-        st.info(f"Prediction Confidence: {round(rf_score*100,2)}%")
-
-        # History
-        if "history" not in st.session_state:
-            st.session_state.history = []
-
-        st.session_state.history.append({
-            "pH": pH,
-            "TDS": TDS,
-            "DO": DO,
-            "BOD": BOD,
-            "WQI": round(prediction,2)
-        })
-
-        # PDF
+        # PDF Download
         if st.button("Download Report"):
             pdf = FPDF()
             pdf.add_page()
@@ -123,46 +96,24 @@ with tab1:
 
 # ---------------- TAB 2 ----------------
 with tab2:
-    st.subheader("TDS vs WQI Graph")
+
+    st.subheader("Water Quality Distribution")
+
+    # Create categories
+    categories = pd.cut(df['WQI'],
+                        bins=[0,50,75,100],
+                        labels=["Good","Moderate","Poor"])
+
+    counts = categories.value_counts()
 
     fig, ax = plt.subplots()
-    ax.scatter(df['TDS'], df['WQI'])
-    ax.set_xlabel("TDS")
-    ax.set_ylabel("WQI")
+    ax.pie(counts, labels=counts.index, autopct='%1.1f%%')
+    ax.set_title("Water Quality Levels")
+
     st.pyplot(fig)
 
-    st.subheader("pH vs WQI Graph")
-
-    fig2, ax2 = plt.subplots()
-    ax2.scatter(df['pH'], df['WQI'])
-    ax2.set_xlabel("pH")
-    ax2.set_ylabel("WQI")
-    st.pyplot(fig2)
-
-# ---------------- TAB 3 ----------------
-with tab3:
-    st.subheader("📊 Model Comparison")
-
-    score_df = pd.DataFrame({
-        "Model": ["Random Forest", "Linear Regression", "Decision Tree"],
-        "R² Score": [rf_score, lr_score, dt_score]
-    })
-
-    st.bar_chart(score_df.set_index("Model"))
-
-    st.subheader("📌 Feature Importance")
-
-    importance = rf.feature_importances_
-    features = ['pH','TDS','DO','BOD']
-
-    imp_df = pd.DataFrame({'Feature':features,'Importance':importance})
-    st.bar_chart(imp_df.set_index('Feature'))
-
-    if "history" in st.session_state:
-        st.subheader("📜 Prediction History")
-        st.write(pd.DataFrame(st.session_state.history))
-
 # ---------------- FOOTER ----------------
+st.write("---")
 st.write("Developed for Water Quality Analysis Project")
 
 st.markdown("""
